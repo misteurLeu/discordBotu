@@ -4,11 +4,11 @@
 # 1) Copiez vos commandes (pas les commandes par défaut) que vous avez créer dans votre ancienne version dans la nouvelle version.
 # 2) Si vous avez modifié une commande de NextBot par défaut, supprimez la commande de la nouvelle version puis copiez le code de la commande de l'ancienne version dans la nouvelle version.
 
-import asyncio, discord
+import asyncio, discord, os
 
 user_bot = "LouveBot" #Mettez dans cette variable le pseudo du bot.
-token = "" #Mettez dans cette variable le token du bot
-trust = [""] #admins du bot
+token = os.environ['BOT_TOKEN'] #Mettez dans cette variable le token du bot
+trust = os.environ['TRUST_USER'].split(',') #admins du bot
 ranks = False
 f = open('streamers.txt', 'r', encoding='utf-8')
 streamers = f.read().split("\n")
@@ -34,6 +34,7 @@ def on_message(message):
     rep2 = text2 = msg2 = rep.split()
     user = str(message.author)
     trusted = user in trust
+    memberList = [member.name + '#' + member.discriminator for member in message.server.members]
     try:
         server_msg = str(message.channel.server)
         chan_msg = str(message.channel.name)
@@ -72,6 +73,10 @@ def on_message(message):
         msgs.close()
 
 #Début des commandes
+
+    if command == "!test":
+        yield from client.send_message(message.channel, user)
+        yield from client.send_message(message.channel, trust)
 
     if command == "!whereami":
         yield from client.send_message(message.channel, message.server)
@@ -133,11 +138,10 @@ def on_message(message):
     if command == "!ver": #Cette commande envoit la version du bot.
         yield from client.send_message(message.channel, "NextBot " + ver + " " + lang)
 
-    if command == "!stream" and trusted:
+    if command == "!streamadd" and trusted:
         if len(params) == 1:
-            yield from client.send_message(message.channel, "utilisation: !stream + username")
-        userToAdd = ' '.join(params[1:]).strip()
-        memberList = [member.name.strip() for member in message.server.members]
+            yield from client.send_message(message.channel, "utilisation: !streamadd + username")
+        userToAdd = ' '.join(params[1:])
         if userToAdd not in streamers and userToAdd in memberList:
             f2 = open('streamers.txt', 'a', encoding='utf-8')
             f2.write(userToAdd + "\n")
@@ -146,6 +150,23 @@ def on_message(message):
             yield from client.send_message(message.channel, userToAdd + " a bien été ajouté a la liste des streams a afficher")
         elif userToAdd in memberList:
             yield from client.send_message(message.channel, userToAdd + " fais déjàs partie de la liste des streams a afficher")
+        else:
+            yield from client.send_message(message.channel, "Erreur dans le nom d'utilisateur")
+
+    if command == "!streamrm" and trusted:
+        if len(params) == 1:
+            yield from client.send_message(message.channel, "utilisation: !streamrm + username")
+        userToRm = ' '.join(params[1:])
+        if userToRm in streamers:
+            newStreamList = [user for user in streamers if userToRm != user]
+            f2 = open('streamers.txt', 'r+', encoding='utf-8')
+            f2.truncate()
+            f2.write("\n".join(newStreamList))
+            f2.close()
+            streamers.clear()
+            for s in newStreamList:
+                streamers.append(s)
+            yield from client.send_message(message.channel, userToRm + " a bien été supprimé a la liste des streams a afficher")
         else:
             yield from client.send_message(message.channel, "Erreur dans le nom d'utilisateur")
         
