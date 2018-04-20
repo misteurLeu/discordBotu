@@ -38,10 +38,11 @@ def on_message(message):
     rep2 = text2 = msg2 = rep.split()
     user = str(message.author)
     trusted = user in trust
-    memberList = [member.name + '#' + member.discriminator for member in message.server.members]
     try:
+        memberList = ['#' + member.discriminator for member in message.server.members]
         server_msg = str(message.channel.server)
         chan_msg = str(message.channel.name)
+        membersName = [str(member.name) + '#' + str(member.discriminator) for member in message.server.members]
         pm = False
     except AttributeError:
         server_msg = user
@@ -77,6 +78,9 @@ def on_message(message):
         msgs.close()
 
     # Début des commandes
+
+    if command == "!members_list":
+            yield from client.send_message(message.channel, '\n'.join(membersName))
 
     if command == "!test":
         yield from client.send_message(message.channel, user)
@@ -153,38 +157,38 @@ def on_message(message):
 
     if command == "!streamadd" and trusted:
         if len(params) == 1:
-            yield from client.send_message(message.channel, "utilisation: !streamadd + username")
-        userToAdd = ' '.join(params[1:])
-        if userToAdd not in streamers and userToAdd in memberList:
-            f2 = open('streamers.txt', 'a', encoding='utf-8')
-            f2.write(userToAdd + "\n")
-            f2.close()
-            streamers.append(userToAdd)
-            yield from client.send_message(message.channel,
-                                           userToAdd + " a bien été ajouté a la liste des streams a afficher")
-        elif userToAdd in memberList:
-            yield from client.send_message(message.channel,
-                                           userToAdd + " fais déjàs partie de la liste des streams a afficher")
-        else:
-            yield from client.send_message(message.channel, "Erreur dans le nom d'utilisateur")
+            yield from client.send_message(message.channel, "utilisation: !streamadd + #usertag")
+        for userToAdd in params[1:]:
+            if userToAdd not in streamers and userToAdd in memberList:
+                f2 = open('streamers.txt', 'a', encoding='utf-8')
+                f2.write(userToAdd + "\n")
+                f2.close()
+                streamers.append(userToAdd)
+                yield from client.send_message(message.channel,
+                                               userToAdd + " a bien été ajouté a la liste des streams a afficher")
+            elif userToAdd in memberList:
+                yield from client.send_message(message.channel,
+                                               userToAdd + " fais déjàs partie de la liste des streams a afficher")
+            else:
+                yield from client.send_message(message.channel, "Erreur dans le nom d'utilisateur")
 
     if command == "!streamrm" and trusted:
         if len(params) == 1:
-            yield from client.send_message(message.channel, "utilisation: !streamrm + username")
-        userToRm = ' '.join(params[1:])
-        if userToRm in streamers:
-            newStreamList = [user for user in streamers if userToRm != user]
-            f2 = open('streamers.txt', 'r+', encoding='utf-8')
-            f2.truncate()
-            f2.write("\n".join(newStreamList))
-            f2.close()
-            streamers.clear()
-            for s in newStreamList:
-                streamers.append(s)
-            yield from client.send_message(message.channel,
-                                           userToRm + " a bien été supprimé a la liste des streams a afficher")
-        else:
-            yield from client.send_message(message.channel, "Erreur dans le nom d'utilisateur")
+            yield from client.send_message(message.channel, "utilisation: !streamrm + usertag")
+        for userToRm in params[1:]:
+            if userToRm in streamers:
+                newStreamList = [user for user in streamers if userToRm != user]
+                f2 = open('streamers.txt', 'r+', encoding='utf-8')
+                f2.truncate()
+                f2.write("\n".join(newStreamList))
+                f2.close()
+                streamers.clear()
+                for s in newStreamList:
+                    streamers.append(s)
+                yield from client.send_message(message.channel,
+                                               userToRm + " a bien été supprimé a la liste des streams a afficher")
+            else:
+                yield from client.send_message(message.channel, "Erreur dans le nom d'utilisateur")
 
 
 # Fin des commandes
