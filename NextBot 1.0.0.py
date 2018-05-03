@@ -26,7 +26,7 @@ print("LouveBot " + ver + " " + lang)
 def on_member_update(before, after):
     streamChannel = [chan for chan in after.server.channels if chan.id == "405352007302643712"][0]
     if after.game is not None and after.game.url is not None:
-        if str(after) in streamers and 'twitch.tv' in after.game.url:
+        if str(after).split('#')[1] in streamers and 'twitch.tv' in after.game.url:
             yield from client.send_message(streamChannel, str(after).split('#')[0] + ' est en live GOGOGOGO :\n' + str(
                 after.game) + ' ' + after.game.url)
 
